@@ -83,7 +83,7 @@ const fetchAppInfo = async () => {
 }
 
 const handleAppleClick = () => {
-  window.location.href = appInfo.value.apple
+  window.location.href = '/#/apple';
 }
 
 onMounted(async () => {

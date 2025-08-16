@@ -19,11 +19,6 @@ server {
             client_body_buffer_size 500m;
         }
 
-        location /uploads/ {
-            proxy_pass  ${API_URL}uploads/;
-            client_max_body_size 1000m;
-            client_body_buffer_size 500m;
-        }
 
         location / {
             root   /usr/share/nginx/html;

@@ -4,37 +4,34 @@
     <div class="distribute-content">
       <div class="cont">
         <AppIcon
-            :iconSrc="`./data/${dir}/icon.png`"
-            :appName="system[platform].name"
-            :version="system[platform].version"
-            :size="system[platform].size"
-            :updateTime="system[platform].time"
+            :iconSrc="`/uploads/app/logo.png`"
+            :appName="appInfo.name"
+            :version="appInfo.version"
+            :size="appInfo.size"
+            :updateTime="currentTime"
         />
-        <div class="download-buttons">
+        <div class="button-group">
           <DownloadButton
-              :dir="dir"
-              :appleDownload="appleDownload"
-              class="premium-btn"
-              buttonText="旗舰版本"
+              :appleDownload="appInfo.apple"
+              buttonText="官方版本"
+              :customClick="handleAppleClick"
           />
           <DownloadButton
-              :dir="dir"
-              :appleDownload="liteDownload"
-              class="lite-btn"
+              :appleDownload="`/uploads/app/${appInfo.lite}`"
               buttonText="极速版本"
+              class="lite-btn"
           />
         </div>
-        <div id="desc" v-if="system[platform].desc">
+        <div id="desc" v-if="appInfo.desc">
           <div class="desc">
             <span class="title">描述：</span>
-            {{ system[platform].desc }}
+            {{ appInfo.desc }}
           </div>
         </div>
         <QRCode
             :url="location"
-            :iconPath="`./data/${dir}/icon.png`"
+            :iconPath="`/uploads/app/logo.png`"
         />
-
       </div>
     </div>
     <InviteMask :show="showInviteMask" />
@@ -50,48 +47,50 @@ import QRCode from '../components/QRCode.vue'
 import InviteMask from '../components/InviteMask.vue'
 import { isIOS, isAndroid, isWechat } from '../utils/browser'
 
-const dir = 'android'
-const platform = ref(2)
 const location = window.location.href
 const showInviteMask = ref(false)
-const appleDownload = ref('')
-const liteDownload = ref('')
+const currentTime = new Date().toLocaleString()
 
-interface SystemData {
+interface AppInfo {
   name: string
+  logo: string
   version: string
   size: string
-  time: string
-  desc: string
-  platform: 'apple' | 'android'
+  android: string
+  apple: string
+  desc?: string
+  lite: string
 }
 
-interface SystemConfig {
-  [key: number]: SystemData
-}
+const appInfo = ref<AppInfo>({
+  name: '',
+  logo: '',
+  version: '',
+  size: '',
+  android: '',
+  apple: '',
+  desc: '',
+  lite: '',
+})
 
-const system: SystemConfig = {
-  '1': {
-    'name': '纽客通讯',
-    'version': '1.0.1',
-    'size': '3.51M',
-    'time': '2021-3-15 17:00:00',
-    'desc': '',
-    'platform': 'apple',
-  },
-  '2': {
-    'name': '纽客通讯',
-    'version': '1.0.2',
-    'size': '40.8M',
-    'time': '2025-3-10 16:18:00',
-    'desc': '',
-    'platform': 'android',
+const fetchAppInfo = async () => {
+  try {
+    const response = await fetch('/uploads/app/launch.json')
+    const data = await response.json()
+    appInfo.value = data
+    // 设置页面标题
+    document.title = appInfo.value.name
+  } catch (error) {
+    console.error('获取应用信息失败:', error)
   }
 }
 
-onMounted(() => {
-  appleDownload.value = 'https://y2i4m.jobguge.com/190ed/owu2otlhzj'
-  liteDownload.value = './data/apple/newke_lite.mobileconfig'
+const handleAppleClick = () => {
+  window.location.href = appInfo.value.apple;
+}
+
+onMounted(async () => {
+  await fetchAppInfo()
 
   // 判断是否在微信环境中
   if (isWechat()) {
@@ -103,21 +102,11 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.download-buttons {
+.button-group {
   display: flex;
   gap: 20px;
   justify-content: center;
-  margin-top: 20px;
-}
-
-.premium-btn :deep(.download-btn) {
-  background: #08c1a0;
-  border-color: #08c1a0;
-}
-
-.lite-btn :deep(.download-btn) {
-  background: #999;
-  border-color: #999;
+  margin: 20px 0;
 }
 
 .report-link {
@@ -130,7 +119,13 @@ onMounted(() => {
   font-size: 14px;
 }
 
+.lite-btn :deep(.download-btn) {
+  background: #999;
+  border-color: #999;
+}
+
 .report-link a:hover {
   text-decoration: underline;
 }
 </style>
+
